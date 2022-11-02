@@ -2,10 +2,11 @@ from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
-from .views import StudentViewSet, GroupViewSet, CourseViewSet, SubjectViewSet
+from .views import StudentViewSet, GroupViewSet, CourseViewSet, SubjectViewSet, ReportView
 
 urlpatterns = [
     path('token/', obtain_auth_token, name='obtain_auth_token'),
+    path('report/', ReportView.as_view(), name='report'),
 ]
 
 router = DefaultRouter()
