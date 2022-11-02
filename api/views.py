@@ -6,6 +6,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.conf import settings
 
 from .serializers import StudentSerializer, GroupSerializer, CourseSerializer, SubjectSerializer
 from class_organizer.models import Student, Group, Course, Subject
@@ -77,7 +78,7 @@ def create_report():
         worksheet.write(row, col + 1, woman_amount)
 
         worksheet.write(row, col, 'Свободных мест')
-        vacancies_count = 20 - group.students.count()
+        vacancies_count = int(settings.MAX_GROUP_SIZE) - group.students.count()
         worksheet.write(row, col + 1, vacancies_count)
 
     workbook.close()
