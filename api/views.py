@@ -1,13 +1,11 @@
-import io
-
-import xlsxwriter
+from celery.result import AsyncResult
 from django.http import FileResponse
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.conf import settings
 
+from class_organizer.tasks import create_report
 from .serializers import StudentSerializer, GroupSerializer, CourseSerializer, SubjectSerializer
 from class_organizer.models import Student, Group, Course, Subject
 
@@ -36,58 +34,32 @@ class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
 
 
-def create_report():
-    buffer = io.BytesIO()
-    workbook = xlsxwriter.Workbook(buffer)
+class CreateReportView(APIView):
+    permission_classes = [IsAdminUser]
 
-    worksheet = workbook.add_worksheet('Направления')
-    row, col = 0, 0
-    for course in Course.objects.all():
-        worksheet.write(row, col, 'Направление')
-        worksheet.write(row, col + 1, course.name)
-        row += 1
-
-        worksheet.write(row, col, 'Куратор')
-        worksheet.write(row, col + 1, course.curator.user.first_name)
-        row += 1
-
-        worksheet.write(row, col, 'Дисциплины')
-        for object in course.subjects.all():
-            worksheet.write(row, col + 1, object.name)
-            row += 1
-
-    worksheet = workbook.add_worksheet('Группы')
-    row = 0
-    for group in Group.objects.all():
-        worksheet.write(row, col, 'Наименование группы')
-        worksheet.write(row, col + 1, group.name)
-        row += 1
-
-        worksheet.write(row, col, 'Состав')
-        for student in group.students.order_by('name'):
-            worksheet.write(row, col + 1, student.name)
-            row += 1
-
-        worksheet.write(row, col, 'Мужчин')
-        man_amount = group.students.filter(gender='male').count()
-        worksheet.write(row, col + 1, man_amount)
-        row += 1
-
-        worksheet.write(row, col, 'Женщин')
-        woman_amount = group.students.filter(gender='female').count()
-        worksheet.write(row, col + 1, woman_amount)
-
-        worksheet.write(row, col, 'Свободных мест')
-        vacancies_count = int(settings.MAX_GROUP_SIZE) - group.students.count()
-        worksheet.write(row, col + 1, vacancies_count)
-
-    workbook.close()
-    buffer.seek(0)
-    return buffer
+    def get(self, request):
+        task = create_report.delay()
+        return Response({'task_id': task.id})
 
 
 class ReportView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        return FileResponse(create_report(), as_attachment=True, filename='report.xlsx')
+        try:
+            report = open('report.xlsx', 'rb')
+            return FileResponse(report, as_attachment=False, filename='report.xlsx')
+        except FileNotFoundError:
+            return Response({'error': 'report not created'})
+
+
+class ReportStatusView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, task_id):
+        task_result = AsyncResult(task_id)
+        result = {
+            "task_id": task_id,
+            "task_status": task_result.status,
+        }
+        return Response(result)
