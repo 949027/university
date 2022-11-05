@@ -21,6 +21,9 @@ services:
       target: django
     depends_on:
       - db
+    volumes:
+      - celery_data:/usr/src/app
+      - .:/university
     command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
       - 8000:8000
@@ -41,8 +44,9 @@ services:
     command: celery -A university worker -l info
     volumes:
       - celery_data:/usr/src/app
-      #- /report.xlsx:/report.xlsx
+      - .:/university
     environment:
+      DATABASE_URL: ${DB_URL-postgres://test_user:qwerty123@db:5432/test_db}
       CELERY_BROKER: ${CELERY_BROKER-redis://redis:6379/0}
       CELERY_BACKEND: ${CELERY_BACKEND-redis://redis:6379/0}
     env_file:
