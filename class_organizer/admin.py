@@ -14,7 +14,6 @@ class CuratorAdmin(admin.ModelAdmin):
 
 class GroupInline(admin.TabularInline):
     model = Group
-    #readonly_fields = ('gender', )
 
 
 @admin.register(Course)
@@ -24,7 +23,6 @@ class CourseAdmin(admin.ModelAdmin):
 
 class StudentInline(admin.TabularInline):
     model = Student
-    #readonly_fields = ('gender', )
 
 
 @admin.register(Group)

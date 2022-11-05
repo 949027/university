@@ -2,6 +2,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.conf import settings
+
 
 class Curator(models.Model):
     user = models.ForeignKey(
@@ -15,11 +17,7 @@ class Curator(models.Model):
 
 
 class Student(models.Model):
-    user = models.ForeignKey(
-        User,
-        verbose_name='Пользователь',
-        on_delete=models.CASCADE,
-    )
+    name = models.CharField('ФИО', max_length=100)
     gender = models.CharField(
         'Пол',
         max_length=10,
@@ -35,22 +33,22 @@ class Student(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if self.group.students.count() < 2:
+        if self.group.students.count() < settings.MAX_GROUP_SIZE:
             return super().save(*args, **kwargs)
         raise ValidationError(
             'There should be no more than 20 people in the group',
         )
 
     def __str__(self):
-        return self.user.username
+        return self.name
 
 
 class Group(models.Model):
     name = models.CharField('Наименование группы', max_length=100)
-    subjects = models.ManyToManyField('Subject', verbose_name='Дисциплины')
     course = models.ForeignKey(
         'Course',
         verbose_name='Направление',
+        related_name='groups',
         on_delete=models.PROTECT,
 
     )
@@ -61,9 +59,11 @@ class Group(models.Model):
 
 class Course(models.Model):
     name = models.CharField('Наименование направления', max_length=100)
-    curator = models.OneToOneField(
+    subjects = models.ManyToManyField('Subject', verbose_name='Дисциплины')
+    curator = models.ForeignKey(
         Curator,
         verbose_name='Куратор',
+        related_name='courses',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
