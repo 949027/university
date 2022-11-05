@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: postgres
+    image: postgres:14.5-alpine
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB-test_db}
+      POSTGRES_USER: ${POSTGRES_USER-test_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-qwerty123}
+    env_file:
+      - ./.env
+    ports:
+      - 5432:5432
+
+  web:
+    container_name: web
+    build:
+      target: django
+    depends_on:
+      - db
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - 8000:8000
+    environment:
+      DATABASE_URL: ${DB_URL-postgres://test_user:qwerty123@db:5432/test_db}
+      CELERY_BROKER: ${CELERY_BROKER-redis://redis:6379/0}
+      CELERY_BACKEND: ${CELERY_BACKEND-redis://redis:6379/0}
+    env_file:
+      - ./.env
+
+
+  celery:
+    container_name: celery
+    build:
+      target: django
+    depends_on:
+      - redis
+    command: celery -A university worker -l info
+    volumes:
+      - celery_data:/usr/src/app
+      #- /report.xlsx:/report.xlsx
+    environment:
+      CELERY_BROKER: ${CELERY_BROKER-redis://redis:6379/0}
+      CELERY_BACKEND: ${CELERY_BACKEND-redis://redis:6379/0}
+    env_file:
+      - ./.env
+
+  dashboard:
+    container_name: flower
+    build:
+      target: django
+    depends_on:
+      - redis
+    command: celery -A university flower --port=5555 --broker=redis://redis:6379/0
+    ports:
+      - 5555:5555
+    environment:
+      CELERY_BROKER: ${CELERY_BROKER-redis://redis:6379/0}
+      CELERY_BACKEND: ${CELERY_BACKEND-redis://redis:6379/0}
+    env_file:
+      - ./.env
+
+  redis:
+    image: redis:7.0.5-alpine
+    ports:
+      - 6379:6379
+
+volumes:
+  db_data:
+  celery_data:
