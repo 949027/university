@@ -29,7 +29,6 @@ class Student(models.Model):
         related_name='students',
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
     )
 
     def save(self, *args, **kwargs):
