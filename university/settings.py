@@ -19,7 +19,10 @@ from environs import Env
 env = Env()
 env.read_env()
 
-MAX_GROUP_SIZE = env('MAX_GROUP_SIZE')
+MAX_GROUP_SIZE = env.int('MAX_GROUP_SIZE')
+
+CELERY_BROKER_URL = env('CELERY_BROKER')
+CELERY_RESULT_BACKEND = env('CELERY_BROKER')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
