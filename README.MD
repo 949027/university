@@ -10,15 +10,13 @@
 git clone https://github.com/949027/university
 ```
 2) Создайте файл `.env` в корне проекта со следующими настройками.
-
-Необходимо:
 - `SECRET_KEY` — [секретный ключ](https://docs.djangoproject.com/en/4.1/ref/settings/#std-setting-SECRET_KEY) проекта. Он отвечает за шифрование на сайте.
-
-Необязательно:
 - `DEBUG` - [дебаг-режим](https://docs.djangoproject.com/en/4.1/ref/settings/#debug). По умолчанию - True.
 - `ALLOWED_HOSTS` - [список допустимых хостов](https://docs.djangoproject.com/en/4.1/ref/settings/#allowed-hosts). По умолчанию - 127.0.0.1, localhost.
 - `DB_URL` - конфигурация БД, указывается в [виде URL](https://github.com/jazzband/dj-database-url). Например `postgres://test_user:test_password@localhost:5432/test_db` (для запуска в Docker используйте `db` вместо `localhost`). Если значение не указано, то используется SQLite, имя файла `db.sqlite3`.
-- `MAX_GROUP_SIZE` - максимальное количество учеников группе. По умолчанию - 20.
+- `CELERY_BROKER` — [конфигурация Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/redis.html).
+- `CELERY_BACKEND` — [конфигурация Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/redis.html).
+- `MAX_GROUP_SIZE` — максимальное количество учеников группе. По умолчанию - 20.
 
 ## Запуск в Docker
 1) Установите [Docker](https://docs.docker.com/engine/install/) и [Docker Compose](https://docs.docker.com/compose/install/).
@@ -63,6 +61,7 @@ python manage.py runserver
 ```
 
 ## Как использовать
+Сервис могут использовать администратор (суперпользователь Django) и кураторы (необходимо добавить в админке Django).
 ### Админ-панель
 Админ-панель доступна по адресу http://127.0.0.1:8000/admin. 
 
