@@ -54,7 +54,8 @@ celery -A university worker -l info
 ```commandline
 celery -A university flower --port=5555 --broker=redis://redis:6379/0
 ```
-Панель будет доступна по адресу http://127.0.0.1:5555  
+Панель будет доступна по адресу http://127.0.0.1:5555
+
 10) Запустите разработческий сервер ([не годится для production](https://docs.djangoproject.com/en/4.1/ref/django-admin/#runserver)):
 ```commandline
 python manage.py runserver
